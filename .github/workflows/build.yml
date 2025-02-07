@@ -178,8 +178,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: abrahamkoloboe27
-          password: ${{ secrets.PAT_ZACH }}
+          username: ozias-dev
+          password: ${{ secrets.PAT2 }}
 
       - name: 🐋 Build and push API Docker Image
         uses: docker/build-push-action@v6
@@ -189,5 +189,5 @@ jobs:
           platforms: linux/amd64, linux/arm64
           push: true
           tags: |
-            ghcr.io/abrahamkoloboe27/anomaly-detection-api:${{ github.sha }}
-            ghcr.io/abrahamkoloboe27/anomaly-detection-api:latest
+            ghcr.io/ozias-dev/anomaly-detection-api:${{ github.sha }}
+            ghcr.io/ozias-dev/anomaly-detection-api:latest
