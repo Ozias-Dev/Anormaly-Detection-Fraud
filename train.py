@@ -249,10 +249,10 @@ def evaluate_models(models: Dict[str, Any], X_test: pd.DataFrame) -> Dict[str, f
             # Create detailed evaluation metrics
             eval_metrics = {
                 'model_name': name,
-                'anomaly_proportion': prop_outliers,
-                'total_samples': len(X_test),
-                'detected_anomalies': np.sum(y_pred == -1),
-                'normal_samples': np.sum(y_pred == 1),
+                'anomaly_proportion': float(prop_outliers),  # Convert to native Python float
+                'total_samples': int(len(X_test)),  # Convert to native Python int
+                'detected_anomalies': int(np.sum(y_pred == -1)),  # Convert numpy values to native Python types
+                'normal_samples': int(np.sum(y_pred == 1)),
                 'timestamp': pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
             }
             
@@ -301,29 +301,23 @@ def evaluate_models(models: Dict[str, Any], X_test: pd.DataFrame) -> Dict[str, f
     return evaluations
 
 def select_best_model(models: Dict[str, Any], evaluations: Dict[str, float]) -> Tuple[Any, str]:
-    """
-    Select the best model based on the lowest proportion of detected anomalies.
-    
-    Args:
-        models (Dict[str, Any]): Dictionary of trained models
-        evaluations (Dict[str, float]): Dictionary of model evaluation results
-        
-    Returns:
-        Tuple[Any, str]:
-            - Best performing model
-            - Name of the best model
-    """
     logging.info("Comparaison des modèles pour sélectionner le meilleur.")
-    best_model_name = min(evaluations, key=lambda k: evaluations[k] if evaluations[k] is not None else float('inf'))
+    
+    # Add validation for empty or None evaluations
+    valid_evaluations = {k: v for k, v in evaluations.items() if v is not None}
+    if not valid_evaluations:
+        raise ValueError("No valid model evaluations available. All models failed.")
+    
+    best_model_name = min(valid_evaluations, key=lambda k: valid_evaluations[k])
     best_model = models[best_model_name]
-    logging.info(f"Modèle sélectionné : {best_model_name} avec {evaluations[best_model_name]*100:.2f}% d'anomalies détectées.")
+    logging.info(f"Modèle sélectionné : {best_model_name} avec {valid_evaluations[best_model_name]*100:.2f}% d'anomalies détectées.")
     
     # Save model selection results to artifacts
     selection_results = {
         'best_model_name': best_model_name,
-        'anomaly_percentage': evaluations[best_model_name]*100,
+        'anomaly_percentage': float(valid_evaluations[best_model_name]*100),  # Convert to native Python float
         'all_models_results': {
-            name: evaluations[name]*100 if evaluations[name] is not None else None 
+            name: float(evaluations[name]*100) if evaluations[name] is not None else None 
             for name in evaluations
         },
         'timestamp': pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
