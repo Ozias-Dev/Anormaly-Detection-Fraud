@@ -118,6 +118,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Figures Archive
+        if: steps.check_files.outputs.model_exists == 'true' && steps.create_release.outputs.upload_url != ''
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -127,8 +128,8 @@ jobs:
           asset_name: figures.zip
           asset_content_type: application/zip
 
-          
-      - name: Upload Figures Archive
+      - name: Upload Logs Archive
+        if: steps.check_files.outputs.model_exists == 'true' && steps.create_release.outputs.upload_url != ''
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
