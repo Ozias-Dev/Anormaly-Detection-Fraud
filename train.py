@@ -32,22 +32,24 @@ def setup_directories() -> None:
 def setup_logging() -> None:
     """
     Configure logging to record all steps in a file.
-    
-    Args:
-        None
-        
-    Returns:
-        None
     """
+    # Create logs directory first
+    os.makedirs('logs', exist_ok=True)
+    
     log_file = os.path.join('logs', 'process.log')
+    
+    # Configure logging with both file and console output
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler(log_file),
+            logging.FileHandler(log_file, mode='w', encoding='utf-8'),
             logging.StreamHandler()
-        ],
+        ]
     )
+    
+    # Test that logging is working
+    logging.info("=== Nouvelle exécution du script ===")
     logging.info("Configuration du logging effectuée.")
 
 def load_data(csv_path: str) -> pd.DataFrame:
@@ -90,21 +92,33 @@ def perform_eda(df: pd.DataFrame) -> None:
 
     # Analysis for numerical variables
     # Histograms
-    df[numeric_cols].hist(bins=30, figsize=(15, 10))
+    df[numeric_cols].hist(bins=30, figsize=(20, 15))
     plt.tight_layout()
     hist_path = os.path.join('figures', 'numeric_histograms.png')
     plt.savefig(hist_path)
     plt.close()
     logging.info(f"Histogrammes sauvegardés dans {hist_path}.")
 
-    # Box plots for numerical variables
-    plt.figure(figsize=(15, 10))
+    # Box plots for each numerical variable
+    for col in numeric_cols:
+        plt.figure(figsize=(10, 6))
+        df[col].plot(kind='box')
+        plt.title(f'Box Plot of {col}')
+        plt.xticks(rotation=45)
+        box_path = os.path.join('figures', f'boxplot_{col}.png')
+        plt.savefig(box_path)
+        plt.close()
+        logging.info(f"Box plot for {col} saved in {box_path}.")
+
+    # Combined box plot for all numerical variables
+    plt.figure(figsize=(20, 15))
     df[numeric_cols].boxplot()
+    plt.title('Combined Box Plot of All Numerical Variables')
     plt.xticks(rotation=45)
-    box_path = os.path.join('figures', 'numeric_boxplots.png')
+    box_path = os.path.join('figures', 'numeric_boxplots_combined.png')
     plt.savefig(box_path)
     plt.close()
-    logging.info(f"Box plots sauvegardés dans {box_path}.")
+    logging.info(f"Combined box plots saved in {box_path}.")
 
     # Correlation heatmap for numerical variables
     plt.figure(figsize=(12, 8))
