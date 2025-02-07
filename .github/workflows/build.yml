@@ -41,6 +41,62 @@ jobs:
             models/
             *.py
 
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: anomaly_detection_v${{ github.run_number }}
+          release_name: Anomaly Detection Models - Run ${{ github.run_number }}
+          body: |
+            # Anomaly Detection Pipeline Results
+            
+            ## Generated Assets:
+            - Trained Models
+            - Performance Figures
+            - Analysis Artifacts
+            
+            Run Number: ${{ github.run_number }}
+            Branch: ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Best Model
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./models/best_model.pkl
+          asset_name: best_model.pkl
+          asset_content_type: application/octet-stream
+
+      - name: Zip Artifacts and Figures
+        run: |
+          zip -r artifacts.zip artifacts/
+          zip -r figures.zip figures/
+
+      - name: Upload Artifacts Archive
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts.zip
+          asset_name: artifacts.zip
+          asset_content_type: application/zip
+
+      - name: Upload Figures Archive
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./figures.zip
+          asset_name: figures.zip
+          asset_content_type: application/zip
+
       - name: Publication des résultats
         run: |
           # Create a markdown report
