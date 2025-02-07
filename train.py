@@ -44,6 +44,10 @@ def setup_logging() -> None:
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
         filename=log_file,
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ],
         filemode='w'
     )
     logging.info("Configuration du logging effectuée.")
@@ -184,7 +188,10 @@ def train_test_data(X: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
             - Test set
     """
     logging.info("Division des données en train et test.")
-    X_train, X_test = train_test_split(X, test_size=0.2, random_state=42)
+    # Ensure we keep the DataFrame format and column names
+    indices = train_test_split(np.arange(len(X)), test_size=0.2, random_state=42)
+    X_train = X.iloc[indices[0]]
+    X_test = X.iloc[indices[1]]
     logging.info(f"Ensemble d'entraînement : {X_train.shape}, ensemble de test : {X_test.shape}.")
     return X_train, X_test
 
