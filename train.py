@@ -458,7 +458,7 @@ def main() -> None:
         best_model, best_model_name = select_best_model(models, evaluations)
 
         # Sauvegarde de tous les modèles et du meilleur modèle
-        save_models(models, best_model, best_model_name)
+        save_models(models, best_model, best_model_name, scaler)
 
         logging.info("Script terminé avec succès.")
         
