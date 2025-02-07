@@ -47,8 +47,21 @@ jobs:
             logs/
             *.py
 
+      - name: Check Model Files
+        id: check_files
+        run: |
+          if [ -f "./models/best_model.pkl" ]; then
+            echo "model_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ best_model.pkl not found in models directory"
+            echo "model_exists=false" >> $GITHUB_OUTPUT
+            echo "Contents of models directory:"
+            ls -la ./models/
+          fi
+
       - name: Create Release
         id: create_release
+        if: steps.check_files.outputs.model_exists == 'true'
         uses: actions/create-release@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -69,6 +82,7 @@ jobs:
           prerelease: false
 
       - name: Upload Best Model
+        if: steps.check_files.outputs.model_exists == 'true'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -80,11 +94,18 @@ jobs:
 
       - name: Zip Artifacts and Figures
         run: |
-          zip -r artifacts.zip artifacts/
-          zip -r figures.zip figures/
-          zip -r logs.zip logs/
+          if [ -d "artifacts" ]; then
+            zip -r artifacts.zip artifacts/
+          fi
+          if [ -d "figures" ]; then
+            zip -r figures.zip figures/
+          fi
+          if [ -d "logs" ]; then
+            zip -r logs.zip logs/
+          fi
 
       - name: Upload Artifacts Archive
+        if: steps.check_files.outputs.model_exists == 'true'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
