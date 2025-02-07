@@ -8,6 +8,11 @@ on:
     branches:
       - main
 
+# Add permissions block at the workflow level
+permissions:
+  contents: write
+  packages: write
+  
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
