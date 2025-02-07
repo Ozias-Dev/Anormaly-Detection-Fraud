@@ -24,8 +24,9 @@ jobs:
       - name: Mise en place de Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-          cache : true
+            python-version: '3.10'
+            cache: 'pip'
+            check-latest: false
 
       - name: Installation des dépendances
         run: |
