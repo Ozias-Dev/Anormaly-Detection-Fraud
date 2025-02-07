@@ -44,6 +44,7 @@ jobs:
             artifacts/
             figures/
             models/
+            logs/
             *.py
 
       - name: Create Release
@@ -81,6 +82,7 @@ jobs:
         run: |
           zip -r artifacts.zip artifacts/
           zip -r figures.zip figures/
+          zip -r logs.zip logs/
 
       - name: Upload Artifacts Archive
         uses: actions/upload-release-asset@v1
@@ -100,6 +102,17 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./figures.zip
           asset_name: figures.zip
+          asset_content_type: application/zip
+
+          
+      - name: Upload Figures Archive
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./logs.zip
+          asset_name: logs.zip
           asset_content_type: application/zip
 
       - name: Publication des résultats

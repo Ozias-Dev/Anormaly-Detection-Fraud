@@ -24,7 +24,7 @@ def setup_directories() -> None:
     Returns:
         None
     """
-    directories = ['artifacts', 'figures', 'models']
+    directories = ['artifacts', 'figures', 'models','logs']
     for dir_name in directories:
         os.makedirs(dir_name, exist_ok=True)
         logging.info(f"Dossier '{dir_name}' créé ou déjà existant.")
@@ -39,7 +39,7 @@ def setup_logging() -> None:
     Returns:
         None
     """
-    log_file = os.path.join('artifacts', 'process.log')
+    log_file = os.path.join('logs', 'process.log')
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
@@ -60,6 +60,7 @@ def load_data(csv_path: str) -> pd.DataFrame:
     """
     logging.info(f"Chargement des données depuis {csv_path}")
     df = pd.read_csv(csv_path)
+    df = df.drop('Transaction_ID', axis=1, errors='ignore')
     logging.info("Données chargées avec succès.")
     return df
 
@@ -81,8 +82,12 @@ def perform_eda(df: pd.DataFrame) -> None:
     eda_summary.to_csv(summary_path)
     logging.info(f"Résumé descriptif sauvegardé dans {summary_path}.")
 
-    # Histogrammes des variables numériques
+    # Separate numerical and categorical columns
     numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
+    categorical_cols = df.select_dtypes(include=['object', 'category']).columns
+
+    # Analysis for numerical variables
+    # Histograms
     df[numeric_cols].hist(bins=30, figsize=(15, 10))
     plt.tight_layout()
     hist_path = os.path.join('figures', 'numeric_histograms.png')
@@ -90,7 +95,37 @@ def perform_eda(df: pd.DataFrame) -> None:
     plt.close()
     logging.info(f"Histogrammes sauvegardés dans {hist_path}.")
 
-    # Pairplot des variables numériques (optionnel)
+    # Box plots for numerical variables
+    plt.figure(figsize=(15, 10))
+    df[numeric_cols].boxplot()
+    plt.xticks(rotation=45)
+    box_path = os.path.join('figures', 'numeric_boxplots.png')
+    plt.savefig(box_path)
+    plt.close()
+    logging.info(f"Box plots sauvegardés dans {box_path}.")
+
+    # Correlation heatmap for numerical variables
+    plt.figure(figsize=(12, 8))
+    sns.heatmap(df[numeric_cols].corr(), annot=True, cmap='coolwarm')
+    corr_path = os.path.join('figures', 'correlation_heatmap.png')
+    plt.savefig(corr_path)
+    plt.close()
+    logging.info(f"Heatmap de corrélation sauvegardé dans {corr_path}.")
+
+    # Analysis for categorical variables
+    for col in categorical_cols:
+        # Bar plots for value counts
+        plt.figure(figsize=(10, 6))
+        df[col].value_counts().plot(kind='bar')
+        plt.title(f'Distribution of {col}')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        cat_path = os.path.join('figures', f'categorical_{col}_distribution.png')
+        plt.savefig(cat_path)
+        plt.close()
+        logging.info(f"Distribution de {col} sauvegardée dans {cat_path}.")
+
+    # Pairplot for numerical variables
     try:
         pairplot = sns.pairplot(df[numeric_cols])
         pairplot_path = os.path.join('figures', 'pairplot.png')
@@ -199,16 +234,70 @@ def evaluate_models(models: Dict[str, Any], X_test: pd.DataFrame) -> Dict[str, f
     """
     logging.info("Évaluation des modèles sur l'ensemble de test.")
     evaluations = {}
+    
+    # Create evaluation directory if it doesn't exist
+    eval_dir = os.path.join('artifacts', 'evaluations')
+    os.makedirs(eval_dir, exist_ok=True)
+    
     for name, model in models.items():
         try:
             y_pred = model.predict(X_test)
-            # Calcul de la proportion d'anomalies (les anomalies sont marquées par -1)
+            # Calculate proportion of anomalies (anomalies are marked as -1)
             prop_outliers = np.mean(y_pred == -1)
             evaluations[name] = prop_outliers
+            
+            # Create detailed evaluation metrics
+            eval_metrics = {
+                'model_name': name,
+                'anomaly_proportion': prop_outliers,
+                'total_samples': len(X_test),
+                'detected_anomalies': np.sum(y_pred == -1),
+                'normal_samples': np.sum(y_pred == 1),
+                'timestamp': pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+            
+            # Save evaluation metrics to JSON file
+            eval_file = os.path.join(eval_dir, f'{name}_evaluation.json')
+            with open(eval_file, 'w') as f:
+                json.dump(eval_metrics, f, indent=4)
+            
+            # Create and save distribution plot of predictions
+            plt.figure(figsize=(10, 6))
+            plt.hist(y_pred, bins=2, alpha=0.7)
+            plt.title(f'Distribution of Predictions - {name}')
+            plt.xlabel('Prediction (-1: Anomaly, 1: Normal)')
+            plt.ylabel('Count')
+            plt.savefig(os.path.join(eval_dir, f'{name}_prediction_dist.png'))
+            plt.close()
+            
             logging.info(f"{name} détecte {prop_outliers*100:.2f}% d'anomalies.")
+            logging.info(f"Evaluation metrics saved to {eval_file}")
+            
         except Exception as e:
             logging.error(f"Échec de l'évaluation pour {name} : {e}")
             evaluations[name] = None
+            
+            # Save error information
+            error_info = {
+                'model_name': name,
+                'error_message': str(e),
+                'timestamp': pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+            error_file = os.path.join(eval_dir, f'{name}_error.json')
+            with open(error_file, 'w') as f:
+                json.dump(error_info, f, indent=4)
+    
+    # Save summary of all evaluations
+    summary = {
+        'evaluation_timestamp': pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'model_results': {
+            name: float(value) if value is not None else None 
+            for name, value in evaluations.items()
+        }
+    }
+    with open(os.path.join(eval_dir, 'evaluation_summary.json'), 'w') as f:
+        json.dump(summary, f, indent=4)
+    
     return evaluations
 
 def select_best_model(models: Dict[str, Any], evaluations: Dict[str, float]) -> Tuple[Any, str]:
@@ -228,6 +317,29 @@ def select_best_model(models: Dict[str, Any], evaluations: Dict[str, float]) -> 
     best_model_name = min(evaluations, key=lambda k: evaluations[k] if evaluations[k] is not None else float('inf'))
     best_model = models[best_model_name]
     logging.info(f"Modèle sélectionné : {best_model_name} avec {evaluations[best_model_name]*100:.2f}% d'anomalies détectées.")
+    
+    # Save model selection results to artifacts
+    selection_results = {
+        'best_model_name': best_model_name,
+        'anomaly_percentage': evaluations[best_model_name]*100,
+        'all_models_results': {
+            name: evaluations[name]*100 if evaluations[name] is not None else None 
+            for name in evaluations
+        },
+        'timestamp': pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+    
+    # Create artifacts directory if it doesn't exist
+    artifacts_dir = 'artifacts'
+    os.makedirs(artifacts_dir, exist_ok=True)
+    
+    # Save selection results to JSON file
+    selection_file = os.path.join(artifacts_dir, 'model_selection_results.json')
+    with open(selection_file, 'w') as f:
+        json.dump(selection_results, f, indent=4)
+    
+    logging.info(f"Model selection results saved to {selection_file}")
+    
     return best_model, best_model_name
 
 def save_models(models: Dict[str, Any], best_model: Any, best_model_name: str) -> None:
