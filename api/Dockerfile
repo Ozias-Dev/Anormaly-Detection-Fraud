@@ -8,11 +8,11 @@ ENV PYTHONUNBUFFERED=1
 # Set the working directory 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-	build-essential \
-	gcc \
-	&& rm -rf /var/lib/apt/lists/*
+# # Install system dependencies
+# RUN apt-get update && apt-get install -y \
+# 	build-essential \
+# 	gcc \
+# 	&& rm -rf /var/lib/apt/lists/*
 
 # Install the dependencies demo install
 COPY requirements.txt . 
