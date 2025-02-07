@@ -33,7 +33,7 @@ jobs:
           python train.py
 
       - name: Upload des artefacts générés
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: repo-artifacts
           path: |
