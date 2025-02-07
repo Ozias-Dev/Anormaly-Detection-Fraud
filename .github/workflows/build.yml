@@ -25,11 +25,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install cml
+          pip install dvc dvc[gs]
 
       - name: Exécution du script d'anomalie
         run: |
-          
           python train.py
 
       - name: Upload des artefacts générés
@@ -42,9 +41,13 @@ jobs:
             models/
             *.py
 
-      - name: Publication des résultats avec CML
+      - name: Publication des résultats
         run: |
-          # Publication du contenu des dossiers via CML
-          cml-publish artifacts/ --md "### Dossier Artifacts"
-          cml-publish figures/ --md "### Dossier Figures"
-          cml-publish models/ --md "### Dossier Models"
+          # Create a markdown report
+          echo "## Pipeline Results" > report.md
+          echo "### Generated Artifacts" >> report.md
+          ls -R artifacts/ >> report.md
+          echo "### Generated Figures" >> report.md
+          ls -R figures/ >> report.md
+          echo "### Generated Models" >> report.md
+          ls -R models/ >> report.md
