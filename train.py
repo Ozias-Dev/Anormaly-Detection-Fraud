@@ -355,27 +355,69 @@ def select_best_model(models: Dict[str, Any], evaluations: Dict[str, float]) -> 
     
     return best_model, best_model_name
 
-def save_models(models: Dict[str, Any], best_model: Any, best_model_name: str) -> None:
+def save_models(models: Dict[str, Any], best_model: Any, best_model_name: str, scaler: StandardScaler) -> None:
     """
-    Save all models and mark the best model as 'best_model.pkl'.
+    Save all models, mark the best model as 'best_model.pkl', and save the scaler.
     
     Args:
         models (Dict[str, Any]): Dictionary of trained models
         best_model (Any): Best performing model
         best_model_name (str): Name of the best model
+        scaler (StandardScaler): Fitted scaler used for data preprocessing
         
     Returns:
         None
     """
-    logging.info("Sauvegarde de tous les modèles.")
+    logging.info("Sauvegarde de tous les modèles et du scaler.")
+    
+    # Save all models
     for name, model in models.items():
         model_path = os.path.join('models', f"{name}.pkl")
         joblib.dump(model, model_path)
         logging.info(f"Modèle {name} sauvegardé dans {model_path}.")
 
+    # Save best model
     best_model_path = os.path.join('models', "best_model.pkl")
     joblib.dump(best_model, best_model_path)
     logging.info(f"Meilleur modèle ({best_model_name}) sauvegardé dans {best_model_path}.")
+    
+    # Save scaler
+    scaler_path = os.path.join('models', "scaler.pkl")
+    joblib.dump(scaler, scaler_path)
+    logging.info(f"Scaler sauvegardé dans {scaler_path}.")
+
+
+def copy_model_to_api(api_dir: str = 'api') -> None:
+        """
+        Copy the best model and scaler to the API directory.
+        
+        Args:
+            api_dir (str): Path to the API directory
+            
+        Returns:
+            None
+        """
+        logging.info("Copying model and scaler to API directory")
+        
+        # Create API model directory if it doesn't exist
+        api_models_dir = os.path.join(api_dir, 'models')
+        os.makedirs(api_models_dir, exist_ok=True)
+        
+        try:
+            # Copy best model
+            source_model = os.path.join('models', 'best_model.pkl')
+            dest_model = os.path.join(api_models_dir, 'best_model.pkl')
+            joblib.dump(joblib.load(source_model), dest_model)
+            
+            # Copy scaler
+            source_scaler = os.path.join('models', 'scaler.pkl')
+            dest_scaler = os.path.join(api_models_dir, 'scaler.pkl')
+            joblib.dump(joblib.load(source_scaler), dest_scaler)
+            
+            logging.info("Model and scaler successfully copied to API directory")
+        except Exception as e:
+            logging.error(f"Error copying files to API directory: {e}")
+            raise
 
 def main() -> None:
     """
@@ -419,6 +461,10 @@ def main() -> None:
         save_models(models, best_model, best_model_name)
 
         logging.info("Script terminé avec succès.")
+        
+        # Copy the best model and scaler to the API directory
+        copy_model_to_api()
+        
     except Exception as e:
         logging.exception("Une erreur est survenue pendant le processus.")
 

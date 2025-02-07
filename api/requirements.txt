@@ -1,0 +1,8 @@
+fastapi 
+pydantic
+pandas
+numpy
+logging
+joblib
+uvicorn
+scikit-learn
