@@ -43,12 +43,10 @@ def setup_logging() -> None:
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
-        filename=log_file,
         handlers=[
             logging.FileHandler(log_file),
             logging.StreamHandler()
         ],
-        filemode='w'
     )
     logging.info("Configuration du logging effectuée.")
 

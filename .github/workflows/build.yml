@@ -105,6 +105,9 @@ jobs:
           if [ -d "logs" ]; then
             zip -r logs.zip logs/
           fi
+          if [ -d "models" ]; then
+            zip -r models.zip models/
+          fi
 
       - name: Upload Artifacts Archive
         if: steps.check_files.outputs.model_exists == 'true'
@@ -127,6 +130,21 @@ jobs:
           asset_path: ./figures.zip
           asset_name: figures.zip
           asset_content_type: application/zip
+
+
+          
+      - name: Upload Models Archive
+        if: steps.check_files.outputs.model_exists == 'true' && steps.create_release.outputs.upload_url != ''
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./models.zip
+          asset_name: models.zip
+          asset_content_type: application/zip
+
+
 
       - name: Upload Logs Archive
         if: steps.check_files.outputs.model_exists == 'true' && steps.create_release.outputs.upload_url != ''
