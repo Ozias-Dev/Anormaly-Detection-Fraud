@@ -172,19 +172,21 @@ def preprocess_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, StandardScaler]:
 
     # Transformation des variables catégorielles en variables indicatrices
     categorical_cols = ['Day_of_Week', 'Time_of_Day', 'Gender', 'Account_Type']
-    for col in categorical_cols:
-        if col in df.columns:
-            df = pd.get_dummies(df, columns=[col], drop_first=True)
-            logging.info(f"Transformation de la colonne catégorielle {col} en variables indicatrices.")
+    df = pd.get_dummies(df, columns=categorical_cols)
+    logging.info("Variables catégorielles transformées en variables indicatrices.")
 
-    # On considère toutes les colonnes restantes comme des features
-    X = df.copy()
+    # Sauvegarde des noms de colonnes
+    columns_path = os.path.join('models', 'feature_names.json')
+    with open(columns_path, 'w') as f:
+        json.dump(list(df.columns), f)
+    logging.info(f"Noms des features sauvegardés dans {columns_path}")
 
     # Mise à l'échelle
     scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-    X_scaled = pd.DataFrame(X_scaled, columns=X.columns)
+    X_scaled = scaler.fit_transform(df)
+    X_scaled = pd.DataFrame(X_scaled, columns=df.columns)
     logging.info("Mise à l'échelle effectuée.")
+    
     return X_scaled, scaler
 
 def train_test_data(X: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -414,7 +416,13 @@ def copy_model_to_api(api_dir: str = 'api') -> None:
             dest_scaler = os.path.join(api_models_dir, 'scaler.pkl')
             joblib.dump(joblib.load(source_scaler), dest_scaler)
             
-            logging.info("Model and scaler successfully copied to API directory")
+            # Copy feature names
+            source_features = os.path.join('models', 'feature_names.json')
+            dest_features = os.path.join(api_models_dir, 'feature_names.json')
+            with open(source_features, 'r') as f_src, open(dest_features, 'w') as f_dst:
+                json.dump(json.load(f_src), f_dst)
+                
+            logging.info("Model, scaler and features copied successfully to API directory")
         except Exception as e:
             logging.error(f"Error copying files to API directory: {e}")
             raise
