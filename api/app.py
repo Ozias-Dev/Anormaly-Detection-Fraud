@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import pandas as pd
 import joblib
 import os
+import json
 import logging
 
 app = FastAPI(title="API de Détection d'Anomalies")
@@ -97,7 +98,7 @@ def load_model():
 def predict(transaction: TransactionData):
     try:
         # Conversion des données d'entrée en DataFrame
-        data = pd.DataFrame([transaction.dict()])
+        data = pd.DataFrame([transaction.model_dump()])
         
         # Suppression de Transaction_ID s'il existe
         if "Transaction_ID" in data.columns:
