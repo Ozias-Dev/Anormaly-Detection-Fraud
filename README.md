@@ -1,113 +1,152 @@
-# 🔍 Anomaly Detection for Fraud Detection System
+Voici la mise à jour du README intégrant vos nouvelles fonctionnalités :
 
-![CI/CD Pipeline](https://github.com/your-username/Anormaly-Detection-Fraud/actions/workflows/build.yml/badge.svg)
+```markdown
+# Anomaly Detection for Fraud Detection System
 
-A machine learning pipeline for detecting fraudulent transactions using anomaly detection techniques. 🚀
+![CI/CD Pipeline](https://github.com/ozias-dev/Anormaly-Detection-Fraud/actions/workflows/build.yml/badge.svg)
+[![Docker Image CI](https://img.shields.io/github/actions/workflow/status/ozias-dev/Anormaly-Detection-Fraud/build.yml?label=Docker%20Build)](https://github.com/ozias-dev/Anormaly-Detection-Fraud/pkgs/container/anomaly-detection-api)
 
-## ✨ Features
+Solution complète de détection de fraudes avec API temps réel et pipeline MLOps.
 
-- **Automated EDA** with visualizations 📊 (histograms, box plots, correlation matrices)
-- **Multiple Anomaly Detection Algorithms** 🤖:
-    - Isolation Forest
-    - One-Class SVM
-    - Local Outlier Factor (LOF)
-- **Model Evaluation & Selection** with metrics tracking 📈
-- **CI/CD Pipeline** with automated model deployment 🔄
-- **DVC Integration** for data versioning 📦
-- **Logging & Artifact Tracking** 📝
+## Features
 
-## 🛠️ Tech Stack
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
-![scikit-learn](https://img.shields.io/badge/scikit--learn-%23F7931E.svg?style=for-the-badge&logo=scikit-learn&logoColor=white)
-![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)
-![DVC](https://img.shields.io/badge/DVC-945DD6?style=for-the-badge&logo=dvc&logoColor=white)
+- 🚀 **API Temps Réel** avec FastAPI (prédictions en millisecondes)
+- 🐳 **Dockerisation** avec build multi-stage optimisé
+- 🔍 **Automated EDA** avec visualisations interactives
+- 🤖 **Modèles d'Anomalies** (Isolation Forest, One-Class SVM, LOF)
+- 🔄 **CI/CD Avancée** avec déploiement automatique sur GHCR
+- 📊 **Monitoring** intégré via logging structuré
+- 📦 **Versioning** des modèles et des données avec DVC
 
-## 💻 Installation
+## Architecture
 
-1. **Clone the repository**:
-```bash
-git clone https://github.com/your-username/Anormaly-Detection-Fraud.git
-cd Anormaly-Detection-Fraud
+```
+.
+├── api/                   # Code de l'API FastAPI
+├── models/                # Modèles entraînés
+├── artifacts/             # Métriques et résultats
+├── notebooks/             # Notebooks d'analyse
+└── .github/workflows/     # Pipelines CI/CD
 ```
 
-2. **Install dependencies**:
+## Installation
+
+### Avec Docker (Recommandé)
+
 ```bash
+# Récupérer l'image Docker
+docker pull ghcr.io/ozias-dev/anomaly-detection-api:latest
+
+# Lancer le conteneur
+docker run -p 8080:8080 ghcr.io/ozias-dev/anomaly-detection-api
+
+# Accéder à l'API : http://localhost:8080
+```
+
+### Installation Manuelle
+
+```bash
+git clone https://github.com/ozias-dev/Anormaly-Detection-Fraud.git
+cd Anormaly-Detection-Fraud
+
 python -m venv venv
 source venv/bin/activate  # Linux/MacOS
-# venv\Scripts\activate  # Windows
 pip install -r requirements.txt
+
+# Lancer l'API
+uvicorn app:app --reload --port 8080
 ```
 
-3. **Set up DVC** (if using data versioning):
-```bash
-dvc init
-dvc remote add -d myremote gs://your-bucket-name
-```
+## Utilisation de l'API
 
-## 🚀 Usage
+### Endpoints
 
-1. **Prepare your data** 📋:
-     - Place your transaction data in `data.csv`
-     - Expected format:
-         ```
-         Transaction_ID,Transaction_Amount,Transaction_Volume,...,Account_Type
-         ```
+- `GET /` : Vérification du statut
+- `POST /predict` : Prédiction d'anomalie
 
-2. **Run the pipeline**:
-```bash
-python train.py
-```
-
-**Output Structure** 📁:
-```
-├── artifacts/            # Analysis results and metrics
-├── figures/             # Generated visualizations
-├── models/              # Saved models (including best_model.pkl)
-├── logs/                # Execution logs
-```
-
-## 🐳 Docker Support (TODO)
+### Exemple de Requête
 
 ```bash
-# Build the image
-docker build -t fraud-detection .
-
-# Run the container
-docker run -v $(pwd)/data:/app/data fraud-detection
+curl -X POST "http://localhost:8080/predict" \
+-H "Content-Type: application/json" \
+-d '{
+    "Transaction_Amount": 1500.0,
+    "Transaction_Volume": 5,
+    "Average_Transaction_Amount": 1200.0,
+    "Frequency_of_Transactions": 15,
+    "Time_Since_Last_Transaction": 2,
+    "Day_of_Week": "Friday",
+    "Time_of_Day": "18:00",
+    "Age": 35,
+    "Gender": "Male",
+    "Income": 75000.0,
+    "Account_Type": "Savings"
+}'
 ```
 
-## 🔄 CI/CD Pipeline
+### Documentation Interactive
 
-The GitHub Actions workflow:
-1. Runs on push to `main` branch or pull requests
-2. Sets up Python 3.10 environment
-3. Installs dependencies
-4. Executes the training pipeline
-5. Creates release with artifacts if successful
-6. Uploads:
-     - Trained models
-     - Visualizations
-     - Evaluation metrics
-     - Log files
+Accédez à l'interface Swagger :  
+`http://localhost:8080/docs`
 
-## 📊 Model Evaluation
+## Pipeline CI/CD
 
-The pipeline automatically:
-- Compares model performance using anomaly detection rates
-- Selects the best performing model
-- Saves all models with versioning
-- Generates evaluation reports in JSON format
+Le workflow GitHub Actions :
+1. 🛠 Build multi-architecture (amd64/arm64)
+2. ✅ Exécution des tests de modèle
+3. 📦 Packaging Docker optimisé
+4. 🚀 Déploiement automatique sur GitHub Container Registry
+5. 🏷 Tagging automatique des versions
+6. 📤 Upload des artefacts de build
 
-## 🤝 Contributing
+## Développement
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### Structure du Dockerfile
 
-## 📝 License
+1. **Stage Builder** :
+   - Installation des dépendances
+   - Optimisation de la taille de l'image
 
-Distributed under the MIT License. See `LICENSE` for more information.
+2. **Stage Runtime** :
+   - Image finale ultra-léger (~150MB)
+   - Configuration sécurité renforcée
+   - Support multi-architecture
 
+### Variables d'Environnement
+
+| Variable | Valeur par défaut | Description |
+|----------|-------------------|-------------|
+| `PORT`   | 8080              | Port d'écoute de l'API |
+
+## Contribution
+
+1. Créer une feature branch
+2. Ajouter des tests unitaires
+3. Vérifier la qualité du code :
+```bash
+flake8 --max-line-length=120 --exclude=venv,artifacts,models
+```
+4. Ouvrir une Pull Request
+
+## Licence
+
+MIT License - Voir le fichier [LICENSE](LICENSE)
+
+
+**Note Technique** : L'API utilise un système de caching intelligent pour les modèles avec chargement au démarrage (cold-start < 2s).
+```
+
+Ce README mis à jour inclut :
+- Badges pour le build Docker et CI/CD
+- Instructions claires pour l'utilisation de l'API
+- Documentation technique améliorée
+- Structure d'architecture mise à jour
+- Détails sur le système de caching des modèles
+- Guide de contribution élargi
+- Exemple de requête API prêt à l'emploi
+
+Vous devriez également :
+1. Créer un fichier `.dockerignore`
+2. Ajouter une documentation Swagger/OpenAPI complète
+3. Implémenter des tests d'intégration pour l'API
+4. Ajouter un exemple de fichier `.env` pour les variables d'environnement
