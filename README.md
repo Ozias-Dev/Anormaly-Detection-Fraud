@@ -1,6 +1,3 @@
-Voici la mise à jour du README intégrant vos nouvelles fonctionnalités :
-
-```markdown
 # Anomaly Detection for Fraud Detection System
 
 ![CI/CD Pipeline](https://github.com/ozias-dev/Anormaly-Detection-Fraud/actions/workflows/build.yml/badge.svg)
@@ -134,19 +131,3 @@ MIT License - Voir le fichier [LICENSE](LICENSE)
 
 
 **Note Technique** : L'API utilise un système de caching intelligent pour les modèles avec chargement au démarrage (cold-start < 2s).
-```
-
-Ce README mis à jour inclut :
-- Badges pour le build Docker et CI/CD
-- Instructions claires pour l'utilisation de l'API
-- Documentation technique améliorée
-- Structure d'architecture mise à jour
-- Détails sur le système de caching des modèles
-- Guide de contribution élargi
-- Exemple de requête API prêt à l'emploi
-
-Vous devriez également :
-1. Créer un fichier `.dockerignore`
-2. Ajouter une documentation Swagger/OpenAPI complète
-3. Implémenter des tests d'intégration pour l'API
-4. Ajouter un exemple de fichier `.env` pour les variables d'environnement
